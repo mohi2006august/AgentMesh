@@ -83,6 +83,30 @@ _HAIKU = ModelInfo(
     cache_write_per_mtok=1.25,
     min_cache_tokens=4096,
 )
+
+
+def _priced_only(alias: str, input_per_mtok: float, output_per_mtok: float) -> ModelInfo:
+    """Models we never request directly but may be billed for via server-side fallback."""
+    return ModelInfo(
+        alias=alias,
+        provider="anthropic",
+        model_id=alias,
+        context_window=1_000_000,
+        max_output_tokens=128_000,
+        input_per_mtok=input_per_mtok,
+        output_per_mtok=output_per_mtok,
+        cache_read_per_mtok=input_per_mtok * 0.1,
+        cache_write_per_mtok=input_per_mtok * 1.25,
+        supports_effort=True,
+    )
+
+
+_FALLBACK_TARGETS = [
+    _priced_only("claude-sonnet-5", 2.00, 10.00),
+    _priced_only("claude-opus-5", 5.00, 25.00),
+    _priced_only("claude-opus-4-8", 5.00, 25.00),
+]
+
 # Shared open-weights base model on the vLLM fleet; tenant LoRA adapters attach to it.
 _BASE = ModelInfo(
     alias="mesh-base",
@@ -122,6 +146,6 @@ class ModelCatalog:
 
 def default_catalog() -> ModelCatalog:
     return ModelCatalog(
-        [_OPUS, _SONNET, _HAIKU, _BASE],
+        [_OPUS, _SONNET, _HAIKU, _BASE, *_FALLBACK_TARGETS],
         aliases={"small-model": "claude-haiku", "large-model": "claude-opus"},
     )
