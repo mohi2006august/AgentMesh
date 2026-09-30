@@ -1,0 +1,30 @@
+# Sample agent: customer support with ticketing, read-only billing lookups and tenant knowledge.
+#   mesh deploy examples/support-agent.yaml
+name: support-agent
+description: Answers customer questions, files tickets and escalates refunds for approval.
+
+model:
+  default: claude-sonnet
+  fallback: small-model
+  adapter: "{tenant}-tone"   # applied when the tenant has registered this LoRA adapter
+
+instructions: prompts/support.md
+
+knowledge:
+  - source: tenant_drive
+    acl: inherit             # each document's ACL is checked against the end user
+  - source: product_docs     # public documentation shared by every tenant
+
+tools:
+  - mcp: zendesk             # tenant supplies OAuth at install
+    policy: {create_ticket: allow, search_tickets: allow, refund: approve}
+  - mcp: stripe-readonly
+
+context: {budget_tokens: 24000, memory: session+profile}
+cache: {semantic: {threshold: 0.93, ttl: 1d}, scope: tenant}
+limits: {max_steps: 12, max_usd_per_run: 0.40}
+billing: {meter: [tokens, tool_calls, retrievals]}
+
+evals:
+  suite: evals/support.yaml
+  min_pass_rate: 0.9

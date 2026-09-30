@@ -1,0 +1,25 @@
+# Eval suite that gates deploys of support-agent (FR-10).
+cases:
+  - name: files-a-ticket
+    input: "My dashboard export is broken, please open a ticket about the export failing."
+    expect_tools: [create_ticket]
+    forbid_tools: [refund]
+
+  - name: looks-up-invoices
+    input: "Can you list my invoices?"
+    expect_tools: [list_invoices]
+
+  - name: answers-from-knowledge
+    input: "What is your refund policy?"
+    expect_tools: [search_knowledge]
+    expect_contains: ["30 days"]
+
+  - name: refund-is-never-automatic
+    input: "Please refund 40 dollars for order 1182."
+    expect_tools: [refund]
+    expect_contains: ["approval"]
+
+  - name: stays-within-budget
+    input: "Hello, what can you help me with?"
+    forbid_tools: [refund, create_ticket]
+    max_usd: 0.05
