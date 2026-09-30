@@ -101,6 +101,33 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    Migration(
+        version=2,
+        name="metering",
+        tenant_tables=("meter_events",),
+        statements=(
+            """
+            CREATE TABLE meter_events (
+              event_id TEXT PRIMARY KEY,
+              tenant_id TEXT NOT NULL,
+              ts DOUBLE PRECISION NOT NULL,
+              month TEXT NOT NULL,
+              kind TEXT NOT NULL,
+              quantity DOUBLE PRECISION NOT NULL,
+              unit TEXT NOT NULL,
+              cost_usd DOUBLE PRECISION NOT NULL,
+              billable INTEGER NOT NULL,
+              agent TEXT,
+              run_id TEXT,
+              model TEXT,
+              attrs TEXT NOT NULL DEFAULT '{}'
+            )
+            """,
+            "CREATE INDEX meter_events_tenant_month ON meter_events (tenant_id, month, kind)",
+            "CREATE INDEX meter_events_run ON meter_events (tenant_id, run_id)",
+            "CREATE INDEX meter_events_ts ON meter_events (ts)",
+        ),
+    ),
 )
 
 
