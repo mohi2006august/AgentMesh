@@ -113,7 +113,7 @@ known-first-party = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 mypy_path = "core:sdk:metering:inference-router:mcp-gateway:runtime:control-plane:retrieval:cache:economics"
 explicit_package_bases = true
 ignore_missing_imports = true

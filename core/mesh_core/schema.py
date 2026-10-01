@@ -201,6 +201,50 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    Migration(
+        version=4,
+        name="retrieval",
+        tenant_tables=("knowledge_sources", "documents", "chunks"),
+        statements=(
+            """
+            CREATE TABLE knowledge_sources (
+              tenant_id TEXT NOT NULL,
+              source TEXT NOT NULL,
+              kind TEXT NOT NULL,
+              config TEXT NOT NULL DEFAULT '{}',
+              created_at DOUBLE PRECISION NOT NULL,
+              synced_at DOUBLE PRECISION,
+              PRIMARY KEY (tenant_id, source)
+            )
+            """,
+            """
+            CREATE TABLE documents (
+              tenant_id TEXT NOT NULL,
+              source TEXT NOT NULL,
+              doc_id TEXT NOT NULL,
+              title TEXT NOT NULL,
+              uri TEXT NOT NULL DEFAULT '',
+              acl TEXT NOT NULL DEFAULT '[]',
+              content_hash TEXT NOT NULL,
+              updated_at DOUBLE PRECISION NOT NULL,
+              PRIMARY KEY (tenant_id, source, doc_id)
+            )
+            """,
+            """
+            CREATE TABLE chunks (
+              tenant_id TEXT NOT NULL,
+              chunk_id TEXT NOT NULL,
+              source TEXT NOT NULL,
+              doc_id TEXT NOT NULL,
+              ordinal INTEGER NOT NULL,
+              text TEXT NOT NULL,
+              embedding TEXT NOT NULL,
+              PRIMARY KEY (tenant_id, chunk_id)
+            )
+            """,
+            "CREATE INDEX chunks_source ON chunks (tenant_id, source)",
+        ),
+    ),
 )
 
 
