@@ -128,6 +128,79 @@ MIGRATIONS: tuple[Migration, ...] = (
             "CREATE INDEX meter_events_ts ON meter_events (ts)",
         ),
     ),
+    Migration(
+        version=3,
+        name="mcp_gateway",
+        tenant_tables=("connections", "tool_policies", "approvals", "oauth_states"),
+        platform_tables=("mcp_servers",),
+        statements=(
+            """
+            CREATE TABLE mcp_servers (
+              name TEXT PRIMARY KEY,
+              definition TEXT NOT NULL,
+              created_at DOUBLE PRECISION NOT NULL,
+              updated_at DOUBLE PRECISION NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE connections (
+              tenant_id TEXT NOT NULL,
+              server TEXT NOT NULL,
+              status TEXT NOT NULL,
+              auth_type TEXT NOT NULL,
+              scopes TEXT NOT NULL DEFAULT '[]',
+              expires_at DOUBLE PRECISION,
+              created_by TEXT NOT NULL,
+              created_at DOUBLE PRECISION NOT NULL,
+              updated_at DOUBLE PRECISION NOT NULL,
+              PRIMARY KEY (tenant_id, server)
+            )
+            """,
+            """
+            CREATE TABLE tool_policies (
+              tenant_id TEXT NOT NULL,
+              server TEXT NOT NULL,
+              tool TEXT NOT NULL,
+              action TEXT NOT NULL,
+              updated_at DOUBLE PRECISION NOT NULL,
+              PRIMARY KEY (tenant_id, server, tool)
+            )
+            """,
+            """
+            CREATE TABLE approvals (
+              approval_id TEXT PRIMARY KEY,
+              tenant_id TEXT NOT NULL,
+              run_id TEXT NOT NULL,
+              step_key TEXT NOT NULL,
+              agent TEXT NOT NULL,
+              user_id TEXT NOT NULL,
+              server TEXT NOT NULL,
+              tool TEXT NOT NULL,
+              arguments TEXT NOT NULL,
+              arguments_hash TEXT NOT NULL,
+              status TEXT NOT NULL,
+              requested_at DOUBLE PRECISION NOT NULL,
+              decided_at DOUBLE PRECISION,
+              decided_by TEXT,
+              reason TEXT,
+              UNIQUE (tenant_id, run_id, step_key)
+            )
+            """,
+            "CREATE INDEX approvals_status ON approvals (tenant_id, status)",
+            """
+            CREATE TABLE oauth_states (
+              tenant_id TEXT NOT NULL,
+              state TEXT NOT NULL,
+              server TEXT NOT NULL,
+              code_verifier TEXT NOT NULL,
+              redirect_uri TEXT NOT NULL,
+              created_by TEXT NOT NULL,
+              created_at DOUBLE PRECISION NOT NULL,
+              PRIMARY KEY (tenant_id, state)
+            )
+            """,
+        ),
+    ),
 )
 
 
